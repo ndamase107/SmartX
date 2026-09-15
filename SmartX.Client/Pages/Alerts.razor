@@ -1,0 +1,49 @@
+﻿@page "/alerts"
+@inject SmartX.Client.Services.SmartXApiService ApiService
+
+<PageTitle>Smart-X Alerts</PageTitle>
+
+<div class="alerts-page">
+
+    <div class="page-header">
+        <h1>System Alerts</h1>
+        <p>Detected telemetry anomalies and sensor disconnections</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <p>Loading alerts...</p>
+    }
+    else if (alerts.Count == 0)
+    {
+        <div class="no-alerts">
+            <strong>All systems normal</strong>
+            <p>No active anomalies or sensor disconnections.</p>
+        </div>
+    }
+    else
+    {
+        <AlertPanel Alerts="@alerts" />
+    }
+
+</div>
+
+@code {
+
+    private List<Models.AlertDto> alerts = [];
+
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            alerts =
+                await ApiService.GetActiveAlertsAsync();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

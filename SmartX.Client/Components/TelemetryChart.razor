@@ -1,0 +1,107 @@
+﻿@using SmartX.Client.Models
+
+<div class="telemetry-chart">
+    <div class="chart-header">
+        <div>
+            <h3>@Title</h3>
+            <p>Recent telemetry readings</p>
+        </div>
+
+        <div class="chart-value">
+            @LatestValue
+        </div>
+    </div>
+
+    @if (Telemetry.Count == 0)
+    {
+        <div class="chart-empty">
+            No telemetry data available.
+        </div>
+    }
+    else
+    {
+        <div class="chart-bars">
+            @foreach (var item in Telemetry.TakeLast(MaxItems))
+            {
+                var numericValue = ConvertToDouble(item.Value);
+
+                <div class="chart-bar-container">
+                    <div class="chart-bar"
+                         style="height:@GetBarHeight(numericValue)%"
+                         title="@($"{numericValue:F2} {Unit}")">
+                    </div>
+
+                    <small>
+                        @item.Timestamp.ToLocalTime().ToString("HH:mm")
+                    </small>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public string Title { get; set; } = "Telemetry";
+
+    [Parameter]
+    public string Unit { get; set; } = "";
+
+    [Parameter]
+    public List<TelemetryDto> Telemetry { get; set; } = [];
+
+    [Parameter]
+    public int MaxItems { get; set; } = 12;
+
+    private string LatestValue
+    {
+        get
+        {
+            if (Telemetry.Count == 0)
+                return "--";
+
+            var latest = Telemetry
+                .OrderBy(x => x.Timestamp)
+                .Last();
+
+            var value = ConvertToDouble(latest.Value);
+
+            return $"{value:F2} {Unit}";
+        }
+    }
+
+    private double ConvertToDouble(object? value)
+    {
+        if (value == null)
+            return 0;
+
+        try
+        {
+            return Convert.ToDouble(value);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    private double GetBarHeight(double value)
+    {
+        if (Telemetry.Count == 0)
+            return 0;
+
+        var values = Telemetry
+            .Select(x => ConvertToDouble(x.Value))
+            .ToList();
+
+        var maximum = values.Max();
+
+        if (maximum <= 0)
+            return 10;
+
+        var percentage = (value / maximum) * 100;
+
+        return Math.Clamp(percentage, 10, 100);
+    }
+}

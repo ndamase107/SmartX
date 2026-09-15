@@ -1,0 +1,36 @@
+﻿@using SmartX.Client.Models
+
+<div class="sensor-card">
+    <div class="sensor-card-header">
+        <div>
+            <h3>@Sensor.MacAddress</h3>
+            <span class="sensor-location">@Sensor.Location</span>
+        </div>
+
+        <StatusIndicator IsOnline="@Sensor.IsOnline" />
+    </div>
+
+    <div class="sensor-card-body">
+        <div class="sensor-detail">
+            <span class="label">Category</span>
+            <span class="value">@Sensor.Category</span>
+        </div>
+
+        <div class="sensor-detail">
+            <span class="label">Sensor ID</span>
+            <span class="value">@Sensor.Id</span>
+        </div>
+
+        <div class="sensor-detail">
+            <span class="label">Registered</span>
+            <span class="value">
+                @Sensor.RegisteredAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public SensorDto Sensor { get; set; } = new();
+}

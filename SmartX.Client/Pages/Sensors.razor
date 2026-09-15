@@ -1,0 +1,64 @@
+﻿@page "/sensors"
+@inject SmartX.Client.Services.SmartXApiService ApiService
+
+<PageTitle>Sensors</PageTitle>
+
+<h1>Registered Sensors</h1>
+
+@if (loading)
+{
+    <p>Loading sensors...</p>
+}
+else if (sensors.Count == 0)
+{
+    <p>No sensors registered.</p>
+
+    <a href="/register-sensor">
+        Register your first sensor
+    </a>
+}
+else
+{
+    <div class="sensor-grid">
+
+        @foreach (var sensor in sensors)
+        {
+            <div class="sensor-card">
+
+                <div class="sensor-card-header">
+                    <strong>@sensor.MacAddress</strong>
+
+                    <span class="status @(sensor.IsOnline ? "online" : "offline")">
+                        @(sensor.IsOnline ? "ONLINE" : "OFFLINE")
+                    </span>
+                </div>
+
+                <p>
+                    <strong>Location:</strong>
+                    @sensor.Location
+                </p>
+
+                <p>
+                    <strong>Category:</strong>
+                    @sensor.Category
+                </p>
+
+            </div>
+        }
+
+    </div>
+}
+
+@code {
+
+    private List<SmartX.Client.Models.SensorDto> sensors = [];
+
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        sensors = await ApiService.GetSensorsAsync();
+
+        loading = false;
+    }
+}

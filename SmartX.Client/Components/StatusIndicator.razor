@@ -1,0 +1,12 @@
+﻿<div class="status-indicator @(IsOnline ? "online" : "offline")">
+    <span class="status-dot"></span>
+
+    <span class="status-text">
+        @(IsOnline ? "Online" : "Offline")
+    </span>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOnline { get; set; }
+}

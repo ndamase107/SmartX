@@ -1,0 +1,97 @@
+﻿@using SmartX.Client.Models
+
+<div class="alert-panel">
+
+    <div class="alert-panel-header">
+        <div>
+            <h3>System Alerts</h3>
+            <p>Telemetry and sensor warnings</p>
+        </div>
+
+        <span class="alert-count">
+            @ActiveAlerts.Count
+        </span>
+    </div>
+
+    @if (ActiveAlerts.Count == 0)
+    {
+        <div class="no-alerts">
+            <span class="success-icon">✓</span>
+
+            <div>
+                <strong>All systems normal</strong>
+                <p>No active alerts detected.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alerts-list">
+
+            @foreach (var alert in ActiveAlerts.OrderByDescending(x => x.Timestamp))
+            {
+                <div class="alert-item @GetSeverityClass(alert.Severity)">
+
+                    <div class="alert-icon">
+                        @GetSeverityIcon(alert.Severity)
+                    </div>
+
+                    <div class="alert-content">
+
+                        <div class="alert-title">
+                            @alert.Severity Alert
+                        </div>
+
+                        <div class="alert-message">
+                            @alert.Message
+                        </div>
+
+                        <div class="alert-device">
+                            Device: @alert.DeviceId
+                        </div>
+
+                        <div class="alert-time">
+                            @alert.Timestamp.ToLocalTime().ToString("dd MMM yyyy HH:mm:ss")
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+
+</div>
+
+@code {
+
+    [Parameter]
+    public List<AlertDto> Alerts { get; set; } = [];
+
+    private List<AlertDto> ActiveAlerts =>
+        Alerts
+            .Where(x => !x.IsResolved)
+            .ToList();
+
+    private string GetSeverityClass(string severity)
+    {
+        return severity?.ToLowerInvariant() switch
+        {
+            "critical" => "critical",
+            "warning" => "warning",
+            "info" => "info",
+            _ => "warning"
+        };
+    }
+
+    private string GetSeverityIcon(string severity)
+    {
+        return severity?.ToLowerInvariant() switch
+        {
+            "critical" => "!",
+            "warning" => "!",
+            "info" => "i",
+            _ => "!"
+        };
+    }
+}

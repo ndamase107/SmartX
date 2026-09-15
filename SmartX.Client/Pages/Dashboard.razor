@@ -1,0 +1,150 @@
+﻿@page "/dashboard"
+@inject SmartX.Client.Services.SmartXApiService ApiService
+
+<PageTitle>Smart-X Dashboard</PageTitle>
+
+<div class="dashboard-page">
+
+    <div class="dashboard-header">
+        <div>
+            <h1>Smart-X Dashboard</h1>
+            <p>Real-time IoT telemetry monitoring</p>
+        </div>
+
+        <button class="generate-button"
+                @onclick="GenerateTelemetry"
+                disabled="@isGenerating">
+
+            @(isGenerating
+                ? "Generating..."
+                : "Generate Telemetry")
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-message">
+            Loading Smart-X data...
+        </div>
+    }
+    else
+    {
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <span>Total Sensors</span>
+                <strong>@sensors.Count</strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Online</span>
+                <strong>
+                    @sensors.Count(x => x.IsOnline)
+                </strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Offline</span>
+                <strong>
+                    @sensors.Count(x => !x.IsOnline)
+                </strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Telemetry Records</span>
+                <strong>@telemetry.Count</strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Active Alerts</span>
+                <strong>@alerts.Count(x => !x.IsResolved)</strong>
+            </div>
+
+        </div>
+
+        <div class="dashboard-grid">
+
+            <TelemetryChart
+                Title="Temperature"
+                Unit="°C"
+                Telemetry="@temperatureData" />
+
+            <AlertPanel Alerts="@alerts" />
+
+        </div>
+
+        <div class="dashboard-section">
+
+            <h2>Registered Sensors</h2>
+
+            <div class="sensor-grid">
+
+                @foreach (var sensor in sensors)
+                {
+                    <SensorCard Sensor="@sensor" />
+                }
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+@code {
+
+    private List<Models.SensorDto> sensors = [];
+    private List<Models.TelemetryDto> telemetry = [];
+    private List<Models.TelemetryDto> temperatureData = [];
+    private List<Models.AlertDto> alerts = [];
+
+    private bool isLoading = true;
+    private bool isGenerating;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboard();
+    }
+
+    private async Task LoadDashboard()
+    {
+        isLoading = true;
+
+        try
+        {
+            sensors =
+                await ApiService.GetSensorsAsync();
+
+            telemetry =
+                await ApiService.GetTelemetryAsync();
+
+            temperatureData =
+                await ApiService.GetTemperatureAsync();
+
+            alerts =
+                await ApiService.GetAlertsAsync();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task GenerateTelemetry()
+    {
+        isGenerating = true;
+
+        try
+        {
+            await ApiService.GenerateTelemetryAsync(
+                1000,
+                10);
+
+            await LoadDashboard();
+        }
+        finally
+        {
+            isGenerating = false;
+        }
+    }
+}

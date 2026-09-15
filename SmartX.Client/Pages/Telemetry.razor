@@ -1,0 +1,63 @@
+﻿@page "/telemetry"
+@inject SmartX.Client.Services.SmartXApiService ApiService
+
+<PageTitle>Telemetry</PageTitle>
+
+<h1>Telemetry Monitor</h1>
+
+<p>
+    Live Smart-X sensor telemetry received by the gateway.
+</p>
+
+@if (loading)
+{
+    <p>Loading telemetry...</p>
+}
+else if (telemetry.Count == 0)
+{
+    <p>No telemetry has been received.</p>
+}
+else
+{
+    <div class="telemetry-table">
+
+        <div class="telemetry-header">
+            <strong>Device</strong>
+            <strong>Sensor Type</strong>
+            <strong>Value</strong>
+            <strong>Timestamp</strong>
+        </div>
+
+        @foreach (var item in telemetry.Take(100))
+        {
+            <div class="telemetry-row">
+
+                <span>@item.DeviceId</span>
+
+                <span>@item.SensorType</span>
+
+                <span>@item.Value</span>
+
+                <span>
+                    @item.Timestamp.ToLocalTime()
+                </span>
+
+            </div>
+        }
+
+    </div>
+}
+
+@code {
+
+    private List<SmartX.Client.Models.TelemetryDto> telemetry = [];
+
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        telemetry = await ApiService.GetTelemetryAsync();
+
+        loading = false;
+    }
+}

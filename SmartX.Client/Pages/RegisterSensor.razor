@@ -1,0 +1,103 @@
+﻿@page "/register-sensor"
+@inject SmartX.Client.Services.SmartXApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Register Sensor</PageTitle>
+
+<div class="form-container">
+
+    <h1>Register IoT Sensor</h1>
+
+    <p>
+        Add a new Smart-X device to the telemetry gateway.
+    </p>
+
+    <div class="form-group">
+        <label>Device MAC Address / Unique Identifier</label>
+
+        <input @bind="sensor.MacAddress"
+               placeholder="e.g. ESP32-001" />
+    </div>
+
+    <div class="form-group">
+        <label>Deployment Location</label>
+
+        <input @bind="sensor.Location"
+               placeholder="e.g. Zone B - Node 1" />
+    </div>
+
+    <div class="form-group">
+        <label>Sensor Category</label>
+
+        <select @bind="sensor.Category">
+
+            <option value="">
+                Select category
+            </option>
+
+            <option value="Environmental">
+                Environmental
+            </option>
+
+            <option value="PowerConsumption">
+                Power Consumption
+            </option>
+
+            <option value="Actuator">
+                Actuator
+            </option>
+
+        </select>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="feedback">
+            @message
+        </div>
+    }
+
+    <button class="primary-button"
+            @onclick="RegisterSensorAsync"
+            disabled="@saving">
+
+        @(saving ? "Registering..." : "Register Sensor")
+
+    </button>
+
+</div>
+
+@code {
+
+    private SmartX.Client.Models.SensorDto sensor = new();
+
+    private string message = string.Empty;
+
+    private bool saving;
+
+    private async Task RegisterSensorAsync()
+    {
+        if (string.IsNullOrWhiteSpace(sensor.MacAddress) ||
+            string.IsNullOrWhiteSpace(sensor.Location) ||
+            string.IsNullOrWhiteSpace(sensor.Category))
+        {
+            message = "Please complete all required fields.";
+            return;
+        }
+
+        saving = true;
+
+        var result = await ApiService.CreateSensorAsync(sensor);
+
+        if (result is not null)
+        {
+            Navigation.NavigateTo("/sensors");
+        }
+        else
+        {
+            message = "Unable to register the sensor.";
+        }
+
+        saving = false;
+    }
+}
